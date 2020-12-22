@@ -24,6 +24,7 @@ package ch.testgoofy.autodecryptor;
 
 public class CLI {
   private final Settings settings;
+  private int nCharacters = 0;
 
   private String getSignature(FontColour colour){
     return getSignature(colour, false);
@@ -32,6 +33,19 @@ public class CLI {
   private String getSignature(FontColour colour, boolean withApplicationName){
     return colour.code + (withApplicationName ? "AutoDecryptor " : "") + "by testgoofy | Version " + settings.version;
 
+  }
+
+  public void printDecryptor(DecryptorState state, String decryptor){
+    String line = FontColour.RESET.code + "[";
+    line += switch (state){
+      case NEW -> " ";
+      case SUCCESSFUL -> FontColour.GREEN.code + "\uD83D\uDDF8";
+      case RUNNING -> FontColour.YELLOW.code + "O";
+      case FAILED -> FontColour.RED.code + "x";
+    };
+    line += FontColour.RESET.code + "] " + decryptor;
+    nCharacters += line.length();
+    System.out.println(line);
   }
 
   public void printError(String message){
@@ -57,6 +71,13 @@ public class CLI {
 
   public void printVersion(){
     System.out.println(getSignature(FontColour.RESET,true));
+  }
+
+  public void resetDecryptorList(){
+    for (int i = 0; i < nCharacters; i++) {
+      System.out.print("\b");
+    }
+    nCharacters = 0;
   }
 
   public CLI(Settings settings){

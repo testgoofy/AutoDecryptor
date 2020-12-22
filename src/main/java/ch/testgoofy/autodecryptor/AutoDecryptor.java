@@ -22,10 +22,60 @@
 
 package ch.testgoofy.autodecryptor;
 
+import ch.testgoofy.autodecryptor.decryptors.Decryptor;
+
 public class AutoDecryptor {
 
   private static final Settings SETTINGS = new Settings("0.1.0");
   private static CLI cli = new CLI(SETTINGS);
+  private static String decryptedMessage;
+  private static final Decryptor[] decryptors = {
+
+  };
+
+  public static void decrypt(String encryptedMessage){
+
+    for (Decryptor decryptor: decryptors) {
+      decryptor.decrypt(encryptedMessage);
+    }
+
+    boolean running = true;
+
+    while (running){
+      boolean allDecryptorsFailed = true;
+
+      for (Decryptor decryptor:decryptors) {
+        DecryptorState state = decryptor.getState();
+        if (state != DecryptorState.FAILED){
+          allDecryptorsFailed = false;
+        }
+        if (state == DecryptorState.SUCCESSFUL){
+          decryptedMessage = decryptor.getDecryptedMessage();
+          running = false;
+        }
+        cli.printDecryptor(decryptor.getState(), decryptor.getName());
+      }
+
+      if (allDecryptorsFailed){
+        running = false;
+      }
+
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e){
+        e.printStackTrace();
+      }
+
+      cli.resetDecryptorList();
+    }
+
+    if (decryptedMessage == null){
+      cli.printError("Couldn't decrypt message: '" + encryptedMessage + "'");
+    } else {
+      System.out.println(decryptedMessage);
+    }
+
+  }
 
   public static void interpretParameter(String param){
     switch (param){
@@ -47,6 +97,8 @@ public class AutoDecryptor {
         interpretParameter(arg);
       }
     }
+
+    decrypt(args[args.length-1]);
 
   }
 }
